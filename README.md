@@ -2,7 +2,7 @@
 
 RPME is a gamified, offline-first fitness tracker built as an installable Progressive Web App — no framework, no build step, no backend. Body measurements drive a character profile and progress visuals; training feeds an XP and reward economy layered on top of a genuinely useful strength- and body-tracking core.
 
-**Live demo:** https://finnraae.github.io/workout-pwa/
+**Live demo:** https://finnraae.github.io/rpme/
 
 ## Highlights
 
