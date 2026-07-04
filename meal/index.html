@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#E8720C">
+<link rel="manifest" href="manifest.json">
+<title>Finn's Meal Planner</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #1a1a1a;
+    color: #f0f0f0;
+    min-height: 100vh;
+    padding-bottom: 40px;
+  }
+
+  header {
+    background: #E8720C;
+    padding: 18px 16px 14px;
+    text-align: center;
+  }
+
+  header h1 { font-size: 1.4rem; font-weight: 700; color: #fff; }
+  header p { font-size: 0.8rem; color: rgba(255,255,255,0.85); margin-top: 2px; }
+
+  .btn-generate {
+    display: block;
+    width: calc(100% - 32px);
+    margin: 20px auto 0;
+    padding: 16px;
+    background: #E8720C;
+    color: #fff;
+    font-size: 1.1rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-generate:active { background: #c45e08; }
+
+  #plan { padding: 16px; display: none; }
+
+  .day-card {
+    background: #252525;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+
+  .day-header {
+    background: #2e2e2e;
+    padding: 10px 14px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #E8720C;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+
+  .meal-row {
+    padding: 10px 14px;
+    border-bottom: 1px solid #2e2e2e;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .meal-row:last-child { border-bottom: none; }
+
+  .meal-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    min-width: 60px;
+    padding-top: 2px;
+  }
+
+  .meal-text {
+    font-size: 0.9rem;
+    color: #f0f0f0;
+    line-height: 1.4;
+    flex: 1;
+  }
+
+  .lunch-sides {
+    font-size: 0.78rem;
+    color: #aaa;
+    margin-top: 4px;
+  }
+
+  .work-tag {
+    display: inline-block;
+    background: #333;
+    color: #aaa;
+    font-size: 0.65rem;
+    padding: 1px 6px;
+    border-radius: 4px;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+
+  .meal-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 6px;
+  }
+
+  .swap-btn, .shop-btn {
+    background: none;
+    border: 1px solid #444;
+    color: #888;
+    font-size: 0.7rem;
+    padding: 3px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .swap-btn:active { background: #333; color: #E8720C; border-color: #E8720C; }
+  .shop-btn:active { background: #333; color: #5cb85c; border-color: #5cb85c; }
+  .yt-btn { background: none; border: 1px solid #444; color: #888; font-size: 0.7rem; padding: 3px 8px; border-radius: 6px; cursor: pointer; text-decoration: none; display: inline-block; transition: all 0.15s; }
+  .yt-btn:active { background: #333; color: #ff4444; border-color: #ff4444; }
+
+  .added-flash {
+    font-size: 0.7rem;
+    color: #5cb85c;
+    display: none;
+    margin-top: 4px;
+  }
+
+  .btn-copy {
+    display: block;
+    width: calc(100% - 32px);
+    margin: 4px auto 0;
+    padding: 14px;
+    background: #2e2e2e;
+    color: #E8720C;
+    font-size: 1rem;
+    font-weight: 700;
+    border: 2px solid #E8720C;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-copy:active { background: #3a3a3a; }
+
+  .copied-msg {
+    text-align: center;
+    color: #5cb85c;
+    font-size: 0.85rem;
+    margin-top: 10px;
+    display: none;
+  }
+
+  .note {
+    text-align: center;
+    color: #666;
+    font-size: 0.75rem;
+    margin-top: 16px;
+    padding: 0 16px;
+  }
+
+  /* Shopping List */
+  #shopping-section {
+    margin: 0 16px;
+    display: none;
+  }
+
+  .shop-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    gap: 8px;
+  }
+
+  .shop-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #E8720C;
+    flex: 1;
+  }
+
+  .shop-actions {
+    display: flex;
+    gap: 6px;
+  }
+
+  .btn-clear, .btn-copy-list {
+    background: none;
+    border: 1px solid #555;
+    color: #888;
+    font-size: 0.75rem;
+    padding: 4px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .btn-clear:active { color: #e05555; border-color: #e05555; }
+  .btn-copy-list:active { color: #E8720C; border-color: #E8720C; }
+
+  .shop-card {
+    background: #252525;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .shop-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-bottom: 1px solid #2e2e2e;
+    cursor: pointer;
+  }
+  .shop-item:last-child { border-bottom: none; }
+  .shop-item.checked { opacity: 0.4; }
+
+  .shop-check {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #555;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    color: #5cb85c;
+  }
+  .shop-item.checked .shop-check {
+    background: #5cb85c;
+    border-color: #5cb85c;
+  }
+
+  .shop-item-name {
+    font-size: 0.95rem;
+    flex: 1;
+  }
+  .shop-item.checked .shop-item-name {
+    text-decoration: line-through;
+    color: #666;
+  }
+
+  .divider {
+    height: 1px;
+    background: #2e2e2e;
+    margin: 20px 16px 16px;
+  }
+
+  .saved-badge {
+    text-align: center;
+    color: #555;
+    font-size: 0.72rem;
+    margin-top: 8px;
+    padding: 0 16px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🍽 Finn's Meal Planner</h1>
+  <p>Low carb · High protein · Heart healthy</p>
+</header>
+
+<button class="btn-generate" onclick="generate()">Generate This Week's Meals</button>
+
+<div id="plan"></div>
+
+<div id="shopping-section">
+  <div class="divider"></div>
+  <div class="shop-header">
+    <span class="shop-title">🛒 Shopping List</span>
+    <div class="shop-actions">
+      <button class="btn-copy-list" onclick="copyList()">📋 Copy</button>
+      <button class="btn-clear" onclick="clearChecked()">Clear checked</button>
+      <button class="btn-clear" onclick="clearList()">Clear all</button>
+    </div>
+  </div>
+  <div class="shop-card" id="shop-list"></div>
+</div>
+
+<script>
+const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+const WORK_DAYS = [0,1,2,3,4];
+
+const BREAKFAST = [
+  { m: 'Scrambled eggs (x4) + turkey bacon + avocado', i: ['Eggs','Turkey bacon','Avocados'] },
+  { m: 'Eggs any style + turkey bacon + berries on the side', i: ['Eggs','Turkey bacon','Berries'] },
+  { m: 'Egg & cheese sandwich on 1 slice toast + berries', i: ['Eggs','Cheese','Bread','Berries'] },
+  { m: 'Smoked salmon + scrambled eggs + avocado', i: ['Smoked salmon','Eggs','Avocados'] },
+  { m: 'Veggie scramble: eggs + spinach + bell peppers + cheese', i: ['Eggs','Spinach','Bell peppers','Cheese'] },
+  { m: 'Breakfast burrito: eggs + cheese + turkey bacon in tortilla', i: ['Eggs','Cheese','Turkey bacon','Flour tortillas'] },
+  { m: 'Hard boiled eggs (x3) + turkey bacon + berries', i: ['Eggs','Turkey bacon','Berries'] },
+  { m: 'Greek yogurt (plain) + mixed nuts + berries — no granola', i: ['Greek yogurt','Mixed nuts','Berries'] },
+  { m: 'Smoked salmon + cream cheese + cucumber slices on 1 slice rye', i: ['Smoked salmon','Cream cheese','Cucumber','Rye bread'] },
+  { m: 'Egg white omelette: egg whites + cheese + spinach + turkey', i: ['Eggs','Cheese','Spinach','Deli turkey'] },
+  { m: 'Sardines or tuna on 1 slice toast + sliced tomato', i: ['Canned sardines','Bread','Tomato'] },
+  { m: 'Cottage cheese + walnuts + berries', i: ['Cottage cheese','Walnuts','Berries'] },
+  { m: 'Shakshuka: eggs poached in tomato sauce + peppers + spices', i: ['Eggs','Canned tomatoes','Bell peppers'] },
+  { m: 'Turkey sausage + eggs + sauteed mushrooms', i: ['Turkey sausage','Eggs','Mushrooms'] },
+  { m: 'Ham egg cups: ham slices in muffin tin + egg cracked in + baked with cheese', i: ['Sliced ham','Eggs','Cheese'] },
+  { m: 'Frittata: eggs + whatever veggies + cheese baked in oven — slice like a pie', i: ['Eggs','Cheese','Bell peppers','Spinach','Onion'] },
+  { m: 'Lox platter: smoked salmon + capers + red onion + cream cheese + cucumber', i: ['Smoked salmon','Capers','Red onion','Cream cheese','Cucumber'] },
+  { m: 'Turkish eggs (cilbir): poached eggs on Greek yogurt + paprika butter drizzle', i: ['Eggs','Greek yogurt','Butter','Paprika'] },
+  { m: 'Smoked mackerel + scrambled eggs + sliced tomato', i: ['Smoked mackerel','Eggs','Tomato'] },
+  { m: 'Breakfast steak: thin cut steak + 2 eggs any style', i: ['Steak','Eggs'] },
+];
+
+const WORK_LUNCH = [
+  { m: 'Grilled chicken breast (~8oz) — cold is fine', i: ['Chicken breast'] },
+  { m: 'Hamburger patty — pack with 1 bun or lettuce wrap', i: ['Ground beef','Burger buns','Lettuce'] },
+  { m: 'Pinwheel wrap: chicken + cheese + mayo — slice into rounds', i: ['Chicken breast','Cheese','Mayo','Flour tortillas'] },
+  { m: 'Pinwheel wrap: turkey + cheese + mayo — slice into rounds', i: ['Deli turkey','Cheese','Mayo','Flour tortillas'] },
+  { m: 'Pinwheel wrap: chicken salad (shredded chicken + mayo) + cheese', i: ['Chicken breast','Mayo','Cheese','Flour tortillas'] },
+  { m: 'Chicken sandwich: grilled chicken + cheese + mayo on a roll', i: ['Chicken breast','Cheese','Mayo','Hoagie rolls'] },
+  { m: 'Turkey club: turkey + cheese + turkey bacon + mayo on toasted bread', i: ['Deli turkey','Cheese','Turkey bacon','Mayo','Bread'] },
+  { m: 'Steak sandwich: thin sliced steak + cheese + mayo on hoagie', i: ['Steak','Cheese','Mayo','Hoagie rolls'] },
+  { m: 'BLT: turkey bacon + tomato + mayo on toasted bread', i: ['Turkey bacon','Tomato','Mayo','Bread'] },
+  { m: 'Chicken quesadilla — slice into wedges, cold is fine', i: ['Chicken breast','Cheese','Flour tortillas'] },
+  { m: 'Tuna salad on 1 slice bread or lettuce wraps', i: ['Canned tuna','Mayo','Bread','Lettuce'] },
+  { m: 'Chicken caesar wrap: chicken + cheese + caesar dressing in tortilla', i: ['Chicken breast','Cheese','Caesar dressing','Flour tortillas'] },
+  { m: 'Pepperoni + cheese + celery sticks — pack in container', i: ['Pepperoni','Cheese','Celery'] },
+  { m: 'Chicken strip wrap: chicken tenders + mayo in tortilla', i: ['Chicken tenders','Mayo','Flour tortillas'] },
+  { m: 'Egg salad on 1 slice bread or lettuce cups', i: ['Eggs','Mayo','Bread','Lettuce'] },
+  { m: 'Cucumber + cream cheese + smoked salmon roll-ups', i: ['Cucumber','Cream cheese','Smoked salmon'] },
+  { m: 'Turkey lettuce wraps: deli turkey + avocado + cheese + mustard in romaine', i: ['Deli turkey','Avocados','Cheese','Mustard','Romaine lettuce'] },
+  { m: 'Hard boiled eggs (x4) + turkey slices + celery', i: ['Eggs','Deli turkey','Celery'] },
+  { m: 'Chicken salad lettuce cups: shredded chicken + mayo + celery in romaine', i: ['Chicken breast','Mayo','Celery','Romaine lettuce'] },
+  { m: 'Sardine or tuna tin + cheese + celery sticks', i: ['Canned sardines','Cheese','Celery'] },
+];
+
+const WORK_SIDES = 'Sides: Greek yogurt (plain) + berries + carrots + celery + hard boiled egg + mixed nuts';
+
+const DINNER = [
+  { m: 'Steak + roasted broccoli + cauliflower rice', i: ['Steak','Broccoli','Cauliflower'] },
+  { m: 'Baked salmon + asparagus + cauliflower rice', i: ['Salmon','Asparagus','Cauliflower'] },
+  { m: 'Ground beef stir fry over cauliflower rice — soy sauce, garlic, peppers', i: ['Ground beef','Cauliflower','Soy sauce','Bell peppers','Garlic'] },
+  { m: 'Teriyaki chicken + steamed broccoli + cauliflower rice', i: ['Chicken breast','Cauliflower','Broccoli','Teriyaki sauce'] },
+  { m: 'Garlic butter shrimp + zucchini noodles or cauliflower rice', i: ['Shrimp','Zucchini','Butter','Garlic'] },
+  { m: 'Baked chicken thighs + green beans + cauliflower rice', i: ['Chicken thighs','Green beans','Cauliflower'] },
+  { m: 'Homemade burgers (lettuce wrap or 1 bun) + side salad', i: ['Ground beef','Lettuce','Cheese','Tomato'] },
+  { m: 'Lemon butter salmon + roasted asparagus', i: ['Salmon','Asparagus','Butter','Lemon'] },
+  { m: 'Beef tacos: ground beef + cheese + sour cream + corn tortillas (2 max)', i: ['Ground beef','Corn tortillas','Cheese','Sour cream'] },
+  { m: 'Smash burgers (no fries) + side salad or roasted veggies', i: ['Ground beef','Burger buns','Cheese','Lettuce','Tomato'] },
+  { m: 'Garlic chicken + roasted Brussels sprouts + cauliflower rice', i: ['Chicken breast','Brussels sprouts','Cauliflower','Garlic'] },
+  { m: 'Beef stir fry + cauliflower rice — soy sauce, sesame, veggies', i: ['Beef','Cauliflower','Soy sauce','Bell peppers'] },
+  { m: 'Chicken fajita bowl: chicken + peppers + onion + cheese + sour cream — no tortilla', i: ['Chicken breast','Bell peppers','Onion','Cheese','Sour cream','Fajita seasoning'] },
+  { m: 'Baked fish + roasted green beans + cauliflower rice', i: ['White fish fillets','Green beans','Cauliflower','Butter'] },
+  { m: 'Chicken wings (baked) + celery + side salad', i: ['Chicken wings','Celery'] },
+  { m: 'Breakfast for dinner: eggs + turkey bacon + avocado', i: ['Eggs','Turkey bacon','Avocados'] },
+  { m: 'Ground beef chili — beef + beans + tomato + seasoning, batch cook friendly', i: ['Ground beef','Canned beans','Canned tomatoes','Chili seasoning'] },
+  { m: 'Pan seared salmon + spinach sauteed in garlic butter', i: ['Salmon','Spinach','Butter','Garlic'] },
+  { m: 'Coconut milk chicken + cauliflower rice — simmer chicken in coconut milk with seasoning', i: ['Chicken breast','Coconut milk','Cauliflower'] },
+  { m: 'Shrimp + roasted broccoli + cauliflower rice — garlic butter', i: ['Shrimp','Broccoli','Cauliflower','Butter','Garlic'] },
+  { m: 'Stuffed peppers: ground beef + cheese + tomato sauce inside bell peppers', i: ['Ground beef','Bell peppers','Cheese','Pasta sauce'] },
+  { m: 'Tuna steaks seared in butter + roasted asparagus', i: ['Tuna steaks','Asparagus','Butter','Lemon'] },
+  { m: 'Chicken thighs braised in tomato + olives + garlic — Mediterranean style', i: ['Chicken thighs','Canned tomatoes','Olives','Garlic'] },
+  { m: 'Ground turkey meatballs + zucchini noodles + tomato sauce', i: ['Ground turkey','Zucchini','Pasta sauce'] },
+  { m: 'Pork tenderloin + roasted cauliflower + green beans', i: ['Pork tenderloin','Cauliflower','Green beans'] },
+  { m: 'Baked tilapia + roasted broccoli + cauliflower rice', i: ['Tilapia','Broccoli','Cauliflower','Butter'] },
+  { m: 'Chicken soup: chicken + broth + celery + carrots + onion — batch cook friendly', i: ['Chicken breast','Chicken broth','Celery','Carrots','Onion'] },
+  { m: 'Seared tuna + avocado slices + cucumber — no carbs needed', i: ['Tuna steaks','Avocados','Cucumber','Soy sauce'] },
+  { m: 'Salmon patties (canned salmon + egg + seasoning, pan fried) + side salad', i: ['Canned salmon','Eggs','Romaine lettuce','Tomato'] },
+  { m: 'Chicken thighs + roasted zucchini + mushrooms in garlic butter', i: ['Chicken thighs','Zucchini','Mushrooms','Butter','Garlic'] },
+  { m: 'Korean beef bowl: ground beef + soy + sesame oil + garlic + ginger over cauliflower rice', i: ['Ground beef','Cauliflower','Soy sauce','Sesame oil','Garlic','Ginger'] },
+  { m: 'Thai basil chicken: ground chicken + fish sauce + basil + peppers over cauliflower rice', i: ['Ground chicken','Cauliflower','Fish sauce','Fresh basil','Bell peppers','Garlic'] },
+  { m: 'Butter chicken (lighter): chicken + tomato + cream + garam masala + garlic over cauliflower rice', i: ['Chicken breast','Canned tomatoes','Heavy cream','Cauliflower','Garam masala','Garlic'] },
+  { m: 'Moroccan chicken: chicken thighs + cumin + paprika + olives + tomatoes — one pan', i: ['Chicken thighs','Canned tomatoes','Olives','Cumin','Paprika'] },
+  { m: 'Pork chops + roasted Brussels sprouts + cauliflower rice', i: ['Pork chops','Brussels sprouts','Cauliflower'] },
+  { m: 'Lamb chops + roasted asparagus + garlic butter', i: ['Lamb chops','Asparagus','Butter','Garlic'] },
+  { m: 'Cajun shrimp + cauliflower rice — Cajun seasoning, butter, garlic', i: ['Shrimp','Cauliflower','Butter','Cajun seasoning','Garlic'] },
+  { m: 'Blackened catfish + roasted green beans', i: ['Catfish fillets','Green beans','Cajun seasoning','Butter'] },
+  { m: 'Sausage + peppers + onions — Italian sausage sliced + peppers braised — no bread', i: ['Italian sausage','Bell peppers','Onion','Garlic'] },
+  { m: 'Greek chicken: chicken + lemon + oregano + garlic — bake in oven + side salad', i: ['Chicken thighs','Lemon','Oregano','Garlic','Romaine lettuce','Tomato'] },
+  { m: 'Crab cakes + side salad — canned crab + egg + breadcrumbs + Old Bay, pan fried', i: ['Canned crab','Eggs','Breadcrumbs','Old Bay seasoning','Romaine lettuce'] },
+  { m: 'Beef short ribs braised: short ribs + broth + onion + garlic — slow cook 2-3 hrs', i: ['Beef short ribs','Beef broth','Onion','Garlic'] },
+  { m: 'Chicken piccata: chicken + lemon + capers + butter — thin cutlets pan fried', i: ['Chicken breast','Lemon','Capers','Butter'] },
+  { m: 'Miso salmon: salmon glazed with miso paste + soy + sesame + broiled', i: ['Salmon','Miso paste','Soy sauce','Sesame oil'] },
+];
+
+const WEEKEND_LUNCH = [
+  { m: 'Homemade burgers + cheese + side salad (no fries)', i: ['Ground beef','Burger buns','Cheese','Lettuce','Tomato'] },
+  { m: 'Ground beef stir fry over cauliflower rice', i: ['Ground beef','Cauliflower','Soy sauce','Bell peppers'] },
+  { m: 'Grilled chicken + roasted veggies', i: ['Chicken breast','Broccoli','Bell peppers'] },
+  { m: 'Taco bowl: ground beef + cheese + sour cream — cauliflower rice, no chips', i: ['Ground beef','Cauliflower','Cheese','Sour cream'] },
+  { m: 'Beef tacos: ground beef + cheese + sour cream + corn tortillas (2 max)', i: ['Ground beef','Corn tortillas','Cheese','Sour cream'] },
+  { m: 'Grilled chicken thighs + green beans', i: ['Chicken thighs','Green beans','Garlic'] },
+  { m: 'Tuna salad lettuce wraps or on 1 slice toast', i: ['Canned tuna','Mayo','Lettuce','Bread'] },
+  { m: 'Quesadilla: chicken + cheese (1 tortilla) + side salad', i: ['Chicken breast','Cheese','Flour tortillas','Lettuce'] },
+  { m: 'Chicken bowl: chicken + cauliflower rice + cheese + sour cream', i: ['Chicken breast','Cauliflower','Cheese','Sour cream'] },
+  { m: 'Salmon + cucumber salad with olive oil + dill', i: ['Salmon','Cucumber','Olive oil'] },
+  { m: 'Avocado + tuna smash bowl: tuna + avocado + lime + salt — eat with a fork', i: ['Canned tuna','Avocados','Lime'] },
+  { m: 'Turkey lettuce wraps: deli turkey + avocado + cheese rolled in romaine', i: ['Deli turkey','Avocados','Cheese','Romaine lettuce'] },
+  { m: 'Egg salad lettuce cups: hard boiled eggs + mayo + celery in romaine', i: ['Eggs','Mayo','Celery','Romaine lettuce'] },
+  { m: 'Smoked salmon + avocado + cucumber plate — no bread needed', i: ['Smoked salmon','Avocados','Cucumber','Cream cheese'] },
+  { m: 'Greek salad bowl: chicken + romaine + cucumber + tomato + olives + feta + olive oil', i: ['Chicken breast','Romaine lettuce','Cucumber','Tomato','Olives','Feta cheese','Olive oil'] },
+  { m: 'Pork chops + roasted veggies', i: ['Pork chops','Zucchini','Bell peppers','Garlic'] },
+  { m: 'Lamb chops + cucumber salad with olive oil', i: ['Lamb chops','Cucumber','Olive oil'] },
+  { m: 'Cobb salad: chicken + bacon + egg + avocado + tomato + romaine + blue cheese dressing', i: ['Chicken breast','Turkey bacon','Eggs','Avocados','Tomato','Romaine lettuce'] },
+  { m: 'Shrimp tacos: shrimp + corn tortillas (2) + slaw + sour cream', i: ['Shrimp','Corn tortillas','Cabbage','Sour cream'] },
+];
+
+let currentPlan = [];
+
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function pickUnique(arr, count) {
+  const shuffled = [...arr].sort(() => Math.random() - 0.5);
+  const result = [];
+  for (let i = 0; i < count; i++) result.push(shuffled[i % shuffled.length]);
+  return result;
+}
+
+// ── Plan persistence ──────────────────────────────────────
+function savePlan() {
+  localStorage.setItem('meal_plan', JSON.stringify(currentPlan));
+}
+
+function loadSavedPlan() {
+  try { return JSON.parse(localStorage.getItem('meal_plan') || 'null'); } catch { return null; }
+}
+
+// ── Render plan from currentPlan ─────────────────────────
+function renderPlan() {
+  const planEl = document.getElementById('plan');
+  planEl.style.display = 'block';
+
+  let html = '';
+
+  DAYS.forEach((day, i) => {
+    const { breakfast, lunch, dinner, isWork } = currentPlan[i];
+    html += `
+      <div class="day-card">
+        <div class="day-header">${day}</div>
+        <div class="meal-row">
+          <span class="meal-label">Breakfast</span>
+          <div style="flex:1">
+            <div class="meal-text" id="meal-${i}-breakfast">${breakfast.m}</div>
+            <div class="meal-actions">
+              <button class="swap-btn" onclick="swapMeal(${i},'breakfast')">🔄 Swap</button>
+              <button class="shop-btn" onclick="addToShop(${i},'breakfast')">🛒 Add ingredients</button>
+              <a class="yt-btn" href="https://www.youtube.com/results?search_query=how+to+make+${encodeURIComponent(breakfast.m.split('—')[0].split(':')[0].trim())}" target="_blank">▶ How to make</a>
+            </div>
+            <div class="added-flash" id="flash-${i}-breakfast"></div>
+          </div>
+        </div>
+        <div class="meal-row">
+          <span class="meal-label">Lunch${isWork ? '<span class="work-tag">work</span>' : ''}</span>
+          <div style="flex:1">
+            <div class="meal-text" id="meal-${i}-lunch">
+              ${lunch.m}${isWork ? `<div class="lunch-sides">${WORK_SIDES}</div>` : ''}
+            </div>
+            <div class="meal-actions">
+              <button class="swap-btn" onclick="swapMeal(${i},'lunch')">🔄 Swap</button>
+              <button class="shop-btn" onclick="addToShop(${i},'lunch')">🛒 Add ingredients</button>
+              <a class="yt-btn" href="https://www.youtube.com/results?search_query=how+to+make+${encodeURIComponent(lunch.m.split('—')[0].split(':')[0].trim())}" target="_blank">▶ How to make</a>
+            </div>
+            <div class="added-flash" id="flash-${i}-lunch"></div>
+          </div>
+        </div>
+        <div class="meal-row">
+          <span class="meal-label">Dinner</span>
+          <div style="flex:1">
+            <div class="meal-text" id="meal-${i}-dinner">${dinner.m}</div>
+            <div class="meal-actions">
+              <button class="swap-btn" onclick="swapMeal(${i},'dinner')">🔄 Swap</button>
+              <button class="shop-btn" onclick="addToShop(${i},'dinner')">🛒 Add ingredients</button>
+              <a class="yt-btn" href="https://www.youtube.com/results?search_query=how+to+make+${encodeURIComponent(dinner.m.split('—')[0].split(':')[0].trim())}" target="_blank">▶ How to make</a>
+            </div>
+            <div class="added-flash" id="flash-${i}-dinner"></div>
+          </div>
+        </div>
+      </div>`;
+  });
+
+  html += `
+    <button class="btn-copy" onclick="copyPlan()">📋 Copy meal plan</button>
+    <div class="copied-msg" id="copied">✓ Copied! Paste it into a text message.</div>
+    <p class="note">🔄 Swap any meal • 🛒 Add ingredients to shopping list</p>
+    <p class="saved-badge">Plan saved — will be here when you come back</p>`;
+
+  planEl.innerHTML = html;
+  renderShopList();
+}
+
+function swapMeal(dayIndex, mealType) {
+  const isWork = WORK_DAYS.includes(dayIndex);
+  let picked;
+  if (mealType === 'breakfast') picked = pick(BREAKFAST);
+  else if (mealType === 'lunch') picked = pick(isWork ? WORK_LUNCH : WEEKEND_LUNCH);
+  else picked = pick(DINNER);
+
+  currentPlan[dayIndex][mealType] = picked;
+  savePlan();
+
+  const el = document.getElementById(`meal-${dayIndex}-${mealType}`);
+  if (el) {
+    if (mealType === 'lunch' && isWork) {
+      el.innerHTML = picked.m + `<div class="lunch-sides">${WORK_SIDES}</div>`;
+    } else {
+      el.textContent = picked.m;
+    }
+  }
+}
+
+function addToShop(dayIndex, mealType) {
+  const meal = currentPlan[dayIndex][mealType];
+  if (!meal) return;
+  const ingredients = meal.i || [];
+  let list = getList();
+  let added = 0;
+  ingredients.forEach(item => {
+    if (!list.find(l => l.name.toLowerCase() === item.toLowerCase())) {
+      list.push({ name: item, checked: false });
+      added++;
+    }
+  });
+  saveList(list);
+  renderShopList();
+
+  const flash = document.getElementById(`flash-${dayIndex}-${mealType}`);
+  if (flash) {
+    flash.textContent = added > 0 ? `✓ ${added} item${added>1?'s':''} added` : '✓ Already in list';
+    flash.style.display = 'block';
+    setTimeout(() => flash.style.display = 'none', 2000);
+  }
+}
+
+function generate() {
+  const breakfasts = pickUnique(BREAKFAST, 7);
+  const dinners = pickUnique(DINNER, 7);
+  const workLunches = pickUnique(WORK_LUNCH, 5);
+  const weekendLunches = pickUnique(WEEKEND_LUNCH, 2);
+  currentPlan = [];
+  let workIdx = 0, weekendIdx = 0;
+
+  DAYS.forEach((day, i) => {
+    const isWork = WORK_DAYS.includes(i);
+    const lunch = isWork ? workLunches[workIdx++] : weekendLunches[weekendIdx++];
+    currentPlan.push({ breakfast: breakfasts[i], lunch, dinner: dinners[i], isWork });
+  });
+
+  savePlan();
+  renderPlan();
+  window.scrollTo({ top: document.querySelector('#plan').offsetTop - 10, behavior: 'smooth' });
+}
+
+function copyPlan() {
+  let text = "FINN'S MEAL PLAN FOR THE WEEK\n\n";
+  currentPlan.forEach((day, i) => {
+    text += `${DAYS[i].toUpperCase()}\n`;
+    text += `  Breakfast: ${day.breakfast.m}\n`;
+    text += `  Lunch: ${day.lunch.m}\n`;
+    if (day.isWork) text += `  (Pack: yogurt cup + fruit + carrots + hard boiled egg)\n`;
+    text += `  Dinner: ${day.dinner.m}\n\n`;
+  });
+  text += 'Portions: ~8oz of protein per meal. Low carb — swap white rice for cauliflower rice. Season however you like!';
+
+  navigator.clipboard.writeText(text).then(() => {
+    const msg = document.getElementById('copied');
+    if (msg) { msg.style.display = 'block'; setTimeout(() => msg.style.display = 'none', 3000); }
+  }).catch(() => alert('Copy failed — screenshot the plan instead!'));
+}
+
+// ── Shopping list ─────────────────────────────────────────
+function getList() {
+  try { return JSON.parse(localStorage.getItem('meal_shop') || '[]'); } catch { return []; }
+}
+
+function saveList(list) {
+  localStorage.setItem('meal_shop', JSON.stringify(list));
+}
+
+function toggleItem(index) {
+  const list = getList();
+  if (list[index]) list[index].checked = !list[index].checked;
+  saveList(list);
+  renderShopList();
+}
+
+function clearChecked() {
+  const list = getList().filter(item => !item.checked);
+  saveList(list);
+  renderShopList();
+}
+
+function clearList() {
+  saveList([]);
+  renderShopList();
+}
+
+function copyList() {
+  const list = getList();
+  if (list.length === 0) return;
+  const unchecked = list.filter(i => !i.checked);
+  const checked = list.filter(i => i.checked);
+  let text = 'GROCERY LIST\n\n';
+  unchecked.forEach(i => text += `• ${i.name}\n`);
+  if (checked.length > 0) {
+    text += `\n(Already have)\n`;
+    checked.forEach(i => text += `✓ ${i.name}\n`);
+  }
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelector('.btn-copy-list');
+    if (btn) {
+      const orig = btn.textContent;
+      btn.textContent = '✓ Copied!';
+      setTimeout(() => btn.textContent = orig, 2000);
+    }
+  }).catch(() => alert('Copy failed — screenshot the list instead!'));
+}
+
+function renderShopList() {
+  const section = document.getElementById('shopping-section');
+  const container = document.getElementById('shop-list');
+  const list = getList();
+
+  if (list.length === 0) {
+    section.style.display = 'none';
+    return;
+  }
+
+  section.style.display = 'block';
+  container.innerHTML = list.map((item, i) => `
+    <div class="shop-item ${item.checked ? 'checked' : ''}" onclick="toggleItem(${i})">
+      <div class="shop-check">${item.checked ? '✓' : ''}</div>
+      <span class="shop-item-name">${item.name}</span>
+    </div>
+  `).join('');
+}
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js');
+}
+
+// ── On load: restore saved plan + shopping list ───────────
+const saved = loadSavedPlan();
+if (saved && saved.length === 7) {
+  currentPlan = saved;
+  renderPlan();
+}
+renderShopList();
+</script>
+</body>
+</html>
