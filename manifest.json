@@ -1,11 +1,12 @@
 {
-  "name": "Workout Tracker",
-  "short_name": "Workout",
-  "description": "Daily workout, hygiene and habit tracker",
+  "name": "RPME",
+  "short_name": "RPME",
+  "description": "Gamified fitness tracker - RPG mechanics, gacha rewards, body progress",
   "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#0F6E56",
+  "background_color": "#090910",
+  "theme_color": "#08080f",
   "orientation": "portrait",
   "icons": [
     {

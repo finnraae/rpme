@@ -1,23 +1,29 @@
-# Workout Tracker PWA
+# RPME — Gamified Workout Tracker PWA
 
-A gamified, offline-first workout tracker built as an installable Progressive Web App — no framework, no build step, no backend. Body measurements drive a character profile; training feeds an XP and reward economy on top of a genuinely useful strength-tracking core.
+RPME is a gamified, offline-first fitness tracker built as an installable Progressive Web App — no framework, no build step, no backend. Body measurements drive a character profile and progress visuals; training feeds an XP and reward economy layered on top of a genuinely useful strength- and body-tracking core.
 
 **Live demo:** https://finnraae.github.io/workout-pwa/
 
 ## Highlights
 
-- **Single-file architecture** — the entire app is one `index.html` of vanilla JavaScript and CSS custom properties, with `Chart.js` (CDN) the only dependency. No bundler, no npm, no server.
-- **Installable PWA** — service worker + web manifest make it installable to a phone home screen and fully usable offline.
-- **Local-first data** — all state persists in `localStorage`; a JSON backup/restore flow lets the user move data between devices.
+- **Single-file architecture** — the entire app is one `index.html` (~370 KB) of vanilla JavaScript and CSS custom properties. `Chart.js` (CDN) is the only runtime library. No bundler, no npm, no server.
+- **Installable PWA** — service worker + web manifest make it installable to a phone home screen and fully usable offline; the service worker runtime-caches Chart.js and web fonts so charts and typography survive with no connection.
+- **Local-first data** — all state persists in `localStorage`, with a JSON backup/restore flow to move data between devices.
+
+## Body & measurement tracking
+
+- Full **body-measurement tracking** — waist, chest, arms, and more, entered over time
+- **Body-fat estimation** via the US Navy circumference method
+- **Measurement history** rendered as radar and trend charts
+- **Before/after progress photos**
 
 ## Training features
 
 - **Progressive overload tracking** with automatic next-session weight/rep recommendations
-- **1RM estimation** via the Epley formula, with strength-level classification by bodyweight ratio
+- **1RM estimation** (Epley formula) and strength-level classification by bodyweight ratio
 - **Exercise swap system** — alternatives and low-impact substitutions per movement
 - **Supersets** with a shared rest timer, plus automatic deload detection
-- **Soreness tracking** and body-fat estimation (US Navy circumference method)
-- **Measurement history** rendered as radar and trend charts; before/after progress photos
+- **Soreness tracking** across muscle groups
 
 ## Gamification layer
 
@@ -32,9 +38,8 @@ Haptic feedback (Vibration API), pull-to-refresh, an onboarding flow, dark mode,
 
 | Path | App |
 |------|-----|
-| `/` | Workout tracker (main app) |
+| `/` | RPME — main fitness tracker |
 | `/meal` | Companion meal / nutrition tracker |
-| `/rpg` | RPG-mode variant |
 
 ## Tech
 
